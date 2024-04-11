@@ -72,56 +72,48 @@ J_deploy = J_sensor + J_solar1 + J_solar2 + J_bus
 
 % Orbit Data
 mu = 368600; % Km
-R_earth = 6378; % Km
 
 COE_0 = [53335.2,0,0,98.43,0,0];
 
 [R_0,V_0] = COE2RV(COE_0,mu);
 
+Period = 2*pi*sqrt(norm(R_0)^3/mu);
+
 % Initial Attitude
 % Quaternion Relating F_b to F_LVLH
-e = [0;0;0];
-n = 1;
+e0 = [0;0;0];
+n0 = 1;
 
 % Initial Angular Velocity
 w_b_ECI_stow   = [-0.05;   0.03;   0.2];
-w_b_ECI_deploy = [0.001; -0.001; 0.002];
-
-% Currently, we are going Torque - Free:
-T = 0;
-
-% Use Simulink (like ode45) to Create the Plots for the Deliverable
-
-tspan = linspace(0,100,100000);
-
-out = sim("aero421_finalProject.slx")
+w_b_LVLH_deploy = [0.001; -0.001; 0.002];
 
 %% Part 2
 % The spacecraft initial attitude is such that it is aligned with F_LVLH
 % Compute initial quaternion and EULER angles relating Fb and Feci
 
+T = 0;
+
 Z_LVLH = -R_0 / norm(R_0);
 Y_LVLH = -cross(R_0,V_0) / norm(cross(R_0,V_0));
 X_LVLH =  cross(Y_LVLH,Z_LVLH);
 
-C_b_ECI = [X_LVLH;Y_LVLH;Z_LVLH]
+% w_LVLH_ECI = 2*pi/Period * Y_LVLH;
 
-n_ECI = (trace(C_b_ECI) + 1) ^ (1/2) / 2
-e_ECI = [(C_b_ECI(2,3)-C_b_ECI(3,2)) / (4*n); ...
-         (C_b_ECI(3,1)-C_b_ECI(1,3)) / (4*n); ...
-         (C_b_ECI(1,2)-C_b_ECI(2,1)) / (4*n)]
+C = [X_LVLH;Y_LVLH;Z_LVLH]
 
-phi   = atan(C_b_ECI(2,3) / C_b_ECI(3,2))
-theta =-asin(C_b_ECI(1,3))
-psi   = atan(C_b_ECI(1,2) / C_b_ECI(1,1))
+n0 = (trace(C) + 1) ^ (1/2) / 2;
+e0 = [(C(2,3)-C(3,2)) / (4*n0); ...
+      (C(3,1)-C(1,3)) / (4*n0); ...
+      (C(1,2)-C(2,1)) / (4*n0)];
 
-n_ECI_dot = -1/2 * e_ECI' * w_b_ECI_deploy
-e_ECI_dot =  1/2 * (n_ECI * eye(3) + vect2cross(e_ECI)) * w_b_ECI_deploy
+q0 = [n0;e0];
 
-eulerRates_ECI = [1, sin(phi)*tan(theta), cos(phi)*tan(theta);...
-                  0, cos(phi)           ,-sin(phi);           ...
-                  0, sin(phi)*sec(theta), cos(phi)*sec(theta)];
-eulerRates_ECI = eulerRates_ECI * w_b_ECI_deploy
+phi0   = atan2(C(2,3), C(3,3));
+theta0 = -asin(C(1,3));
+psi0   = atan2(C(1,2), C(1,1));
+
+E0 = [phi0;theta0;psi0];
 
 %% Functions
 
