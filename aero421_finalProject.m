@@ -87,6 +87,15 @@ n = 1;
 w_b_ECI_stow   = [-0.05;   0.03;   0.2];
 w_b_ECI_deploy = [0.001; -0.001; 0.002];
 
+% Currently, we are going Torque - Free:
+T = 0;
+
+% Use Simulink (like ode45) to Create the Plots for the Deliverable
+
+tspan = linspace(0,100,100000);
+
+out = sim("aero421_finalProject_4_10_sim.slx")
+
 %% Part 2
 % The spacecraft initial attitude is such that it is aligned with F_LVLH
 % Compute initial quaternion and EULER angles relating Fb and Feci
