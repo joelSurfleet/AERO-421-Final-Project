@@ -94,7 +94,7 @@ T = 0;
 
 tspan = linspace(0,100,100000);
 
-out = sim("aero421_finalProject_4_10_sim.slx")
+out = sim("aero421_finalProject.slx")
 
 %% Part 2
 % The spacecraft initial attitude is such that it is aligned with F_LVLH
