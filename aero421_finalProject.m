@@ -115,6 +115,32 @@ psi0   = atan2(C(1,2), C(1,1));
 
 E0 = [phi0;theta0;psi0];
 
+out = sim("aero421_finalProject_4_10_sim.slx");
+
+figure
+subplot(1,3,1)
+plot(out.tout, out.omega.signals.values)
+grid on
+legend('omega X', 'omega Y', 'omega Z')
+xlabel('Time (sec)')
+ylabel('Angular Velocity (rad/s)')
+title('Angular Velocities')
+subplot(1,3,2)
+plot(out.tout, out.E.signals.values)
+grid on
+legend('Yaw', 'Pitch', 'Roll')
+xlabel('Time (sec)')
+ylabel('Eular Angle Rates (rad/s)')
+title('Euler Angles')
+subplot(1,3,3)
+plot(out.tout, out.q.signals.values)
+grid on
+legend('q1', 'q2', 'q3', 'q4')
+xlabel('Time (sec)')
+ylabel('Quaternion Parameter')
+title('Quanterions')
+
+
 %% Functions
 
 function [R,V] = COE2RV(coe,mu)
