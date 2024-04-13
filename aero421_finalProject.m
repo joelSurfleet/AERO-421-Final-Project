@@ -71,7 +71,7 @@ J_bus = I_bus - mass_bus * rx_bus * rx_bus;
 J_deploy = J_sensor + J_solar1 + J_solar2 + J_bus
 
 % Orbit Data
-mu = 368600; % Km
+mu = 398600; % Km
 
 COE_0 = [53335.2,0,0,98.43,0,0];
 
@@ -115,31 +115,51 @@ psi0   = atan2(C(1,2), C(1,1));
 
 E0 = [phi0;theta0;psi0];
 
-out = sim("aero421_finalProject_4_10_sim.slx");
+out = sim("aero421_finalProjectSim.slx")
 
-figure
-subplot(1,3,1)
-plot(out.tout, out.omega.signals.values)
-grid on
-legend('omega X', 'omega Y', 'omega Z')
-xlabel('Time (sec)')
-ylabel('Angular Velocity (rad/s)')
-title('Angular Velocities')
-subplot(1,3,2)
-plot(out.tout, out.E.signals.values)
-grid on
-legend('Yaw', 'Pitch', 'Roll')
-xlabel('Time (sec)')
-ylabel('Eular Angle Rates (rad/s)')
-title('Euler Angles')
-subplot(1,3,3)
-plot(out.tout, out.q.signals.values)
-grid on
-legend('q1', 'q2', 'q3', 'q4')
-xlabel('Time (sec)')
-ylabel('Quaternion Parameter')
-title('Quanterions')
+%% Plot Results
 
+out.E_b_ECI(:,2:4) = out.E_b_ECI(:,2:4) .* (180/pi);
+
+close all;
+
+figure('numbertitle','off','name','final project part 2','windowstate','maximized')
+
+sgtitle("Final Project Part 2")
+
+subplot(3,1,1)
+grid on; hold on;
+plot(out.w_b_ECI(:,1),out.w_b_ECI(:,2))
+plot(out.w_b_ECI(:,1),out.w_b_ECI(:,3))
+plot(out.w_b_ECI(:,1),out.w_b_ECI(:,4))
+
+legend("\omega_{x}","\omega_{y}","\omega_{z}")
+title("Angular Velocities")
+xlabel("time (sec)")
+ylabel("angular velocity (rad/s)")
+
+subplot(3,1,2)
+grid on; hold on;
+plot(out.q_b_ECI(:,1),out.q_b_ECI(:,2))
+plot(out.q_b_ECI(:,1),out.q_b_ECI(:,3))
+plot(out.q_b_ECI(:,1),out.q_b_ECI(:,4))
+plot(out.q_b_ECI(:,1),out.q_b_ECI(:,5))
+
+legend("\eta","\epsilon_{x}","\epsilon_{y}","\epsilon_{z}")
+title("Quaternions")
+xlabel("time (sec)")
+ylabel("Quaternion Parameter")
+
+subplot(3,1,3)
+grid on; hold on;
+plot(out.E_b_ECI(:,1),out.E_b_ECI(:,2))
+plot(out.E_b_ECI(:,1),out.E_b_ECI(:,3))
+plot(out.E_b_ECI(:,1),out.E_b_ECI(:,4))
+
+legend("\phi","\theta","\psi")
+title("Euler Angles")
+xlabel("time (sec)")
+ylabel("angle (degrees)")
 
 %% Functions
 
