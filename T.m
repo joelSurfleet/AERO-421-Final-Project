@@ -23,7 +23,18 @@ end
 Tb = cross(m,b);
 
 % Solar Pressure Torque
-Ts = cross(Cs,Fs);
+
+p = 4.5e-6;
+
+for i = 1:16
+    if dot(sat.n(i,:),s) < 0
+        continue
+    end
+
+    Cp = sat.C(i,:);
+    Fa = -p * s * sat.A(i,:);
+    Ts = Ts + cross(Cp,Fa);
+end
 
 % Gravity Gradient Torque
 rx = vect2cross(rb);
