@@ -1,4 +1,7 @@
-function T = T(sat,m,b,V,rb,J)
+function T = T(b,n,C,A,m,V,R,J)
+
+T = 0;
+return
 
 % Atmospherice Drag Torgue
 Ta = 0;
@@ -23,7 +26,6 @@ end
 Tb = cross(m,b);
 
 % Solar Pressure Torque
-
 p = 4.5e-6;
 
 for i = 1:16
@@ -37,6 +39,8 @@ for i = 1:16
 end
 
 % Gravity Gradient Torque
+rb = R; % :(
+
 rx = vect2cross(rb);
 Tg = ((3 * mu) / norm(rb)^5) * rx * J * rb;
 
