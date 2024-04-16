@@ -6,69 +6,85 @@
 clc;clear;
 
 % mass of components
-mass_solar = 20; % mass of solar panel, in kg
-mass_sensor = 100; % mass of sensor, in kg
-mass_bus = 500; % mass of bus, in kg
-mass_tot = 640; % satellite stowed mass, in kg
+mSen = 100; % mass of sensor, in kg
+mSol = 20;  % mass of solar panel, in kg
+mBus = 500; % mass of bus, in kg
+mTot = 640; % satellite stowed mass, in kg
 
-% geometry of components
-bus_side = 2; % side length, in meters
-solar_height = 2; % side length in x-axis, in meters
-solar_base = 3; %  side length in y-axis, in meters
-solar_thick = 0.05; % side length in z-axis, in meters
-sensor_base = 0.25; % side length in x-axis, in meters
-sensor_thick = 0.25; % side length in y-axis, in meters
-sensor_height = 1; % side length in z-axis, in meters
+% dimensions of components
+dimSen = [0.25,0.25,1];
+dimSol = [2,3,0.05];
+dimBus = [2,2,2];
+
+% locations of centroids relative to center of bus
+rSen  = [0,0,1.5];
+rSol1 = [0,-2.5,0];
+rSol2 = [0,2.5,0];
+rBus  = [0,0,0];
 
 % CoM, center of mass;
 % assume density of stowed spacecraft is uniform in the 2m cube
-CoM_stowed = [0;0;0]; % in m
+detumbSat.CoM = [0,0,0]; % in m
 
 % deployed CoM, in m
-x_deploy = 0;
-y_deploy = 0;
-z_deploy = mass_sensor*(sensor_height/2+bus_side/2)/mass_tot;
-CoM_deploy = [x_deploy;y_deploy;z_deploy];
+mehielSat.CoM = [0,0,mSen*(rSen(3))/mTot];
+
+rSen  = rSen  - mehielSat.CoM;
+rSol1 = rSol1 - mehielSat.CoM;
+rSol2 = rSol2 - mehielSat.CoM;
+rBus  = rBus  - mehielSat.CoM;
+
+% Body Geometry:
+
+% mehielSat.names = names of surfaces
+% mehielSat.n = Normal Vectors
+% mehielSat.c = Centers
+% mehielSat.A = Areas
+
+% Done in order of center z coord from -z to +z 
+% if 2 surfaces have the same z coord, then it goes from -y to +y
+% then -x to +x if both z and y are the same
+
+z = [0,0,-1];
+Z = [0,0,1];
+y = [0,-1,0];
+Y = [0,1,0];
+x = [-1,0,0];
+X = [1,0,0];
+
+% Nomenclature: Object, Direction
+mehielSat.names = ["Bus -z";"-y Panel -z";"+y Panel -z";"-y Panel -y"; ... 
+    "-y Panel -x";"-y Panel +x";"Bus -y";"Bus -x";"Bus +x";"Bus +y"; ...
+    "+y Panel -x";"+y Panel +x";"+y Panel +y";"-y Panel +z"; ...
+    "+y Panel +z";"Bus +z";"Sensor -y";"Sensor -x";"Sensor +x"; ...
+    "Sensor -y";"Sensor +z"];
+
+mehielSat.n = [z;z;z;y;x;X;y;x;X;Y;x;X;Y;Z;Z;Z;y;x;X;y;Z];
+
+mehielSat.A = [4;6;6;0.1;0.15;0.15;4;4;4;4;0.15;0.15;0.1;6;6;4;0.25;0.25; ...
+    0.25;0.25;0.0625];
+
+mehielSat.C = [[0,0,-1];[0,-2.5,-0.025];[0,2.5,-0.025];[0,-4,0];[-1,-2.5,0]; ...
+    [1,-2.5,0];[0,1,0];[-1,0,0];[1,0,0];[0,1,0];[-1,2.5,0];[1,2.5,0]; ...
+    [0,4,0];[0,-2.5,0.025];[0,2.5,0.025];[0,0,1];[0,-0.125,1.5]; ...
+    [-0.125,0,1.5];[0.125,0,1.5];[0,0.125,1.5];[0,0,2]];
+
+mehielSat.C = mehielSat.C - mehielSat.CoM;
+
+indices = [1,7,8,9,10,16];
+
+detumbSat.n = mehielSat.n(indices,:);
+detumbSat.A = mehielSat.A(indices,:);
+detumbSat.C = mehielSat.C(indices,:);
 
 % J, moment of inertia matrix
 % assume the body frame is the principle axis frame 
 % stowed moment of inertia, in kg*m^2
-Jx_stow = 1/12*mass_tot*(2*bus_side^2); 
-Jy_stow = Jx_stow;
-Jz_stow = Jx_stow;
-J_stow = diag([Jx_stow, Jy_stow, Jz_stow]);
-
-% deployed moment of inertia for sensor, in kg*m^2
-I_sensor = diag([1/12*mass_sensor*(sensor_base^2+sensor_height^2); ... Moment of Inertia of Sensor about x axis, m^4
-           1/12*mass_sensor*(sensor_base^2+sensor_height^2); ...
-           1/12*mass_sensor*(sensor_base^2+sensor_thick^2)]);
-
-rx_sensor = vect2cross([0; 0; bus_side/2 + sensor_height/2 - z_deploy]);
-
-J_sensor = I_sensor - mass_sensor * rx_sensor * rx_sensor;
-
-% deployed moment of inertia for each solar panel, in kg*m^2
-I_solar = diag([1/12*mass_solar*(solar_base^2+solar_thick^2);
-                1/12*mass_solar*(solar_height^2+solar_thick^2);
-                1/12*mass_solar*(solar_height^2+solar_base^2)]);
-
-rx_solar1 = vect2cross([0;bus_side/2+solar_base/2;-z_deploy]);
-rx_solar2 = vect2cross([0;-bus_side/2-solar_base/2;-z_deploy]);
-
-J_solar1 = I_solar - mass_solar * rx_solar1 * rx_solar1;
-J_solar2 = I_solar - mass_solar * rx_solar2 * rx_solar2;
-
-% deployed moment of inertia for bus, in kg*m^2
-I_bus = diag([1/12*mass_bus*(2*bus_side^2); ...
-              1/12*mass_bus*(2*bus_side^2); ...
-              1/12*mass_bus*(2*bus_side^2)]);
-
-rx_bus = vect2cross([0;0;-z_deploy]);
-
-J_bus = I_bus - mass_bus * rx_bus * rx_bus;
+detumbSat.J = J(mTot,dimBus,detumbSat.CoM);
 
 %moment of inertia for deployed configuration, in kg*m^2
-J_deploy = J_sensor + J_solar1 + J_solar2 + J_bus
+mehielSat.J = J(mSen,dimSen,rSen) + J(mSol,dimSol,rSol1) ...
+    + J(mSol,dimSol,rSol2) + J(mBus,dimBus,rBus);
 
 % Orbit Data
 mu = 398600; % Km
@@ -81,12 +97,12 @@ Period = 2*pi*sqrt(norm(R_0)^3/mu);
 
 % Initial Attitude
 % Quaternion Relating F_b to F_LVLH
-e0 = [0;0;0];
-n0 = 1;
+% e0 = [0;0;0];
+% n0 = 1;
 
 % Initial Angular Velocity
-w_b_ECI_stow   = [-0.05;   0.03;   0.2];
-w_b_LVLH_deploy = [0.001; -0.001; 0.002];
+detumbSat.w0 = [-0.05;   0.03;   0.2];
+mehielSat.w0 = [0.001; -0.001; 0.002];
 
 %% Part 2
 % The spacecraft initial attitude is such that it is aligned with F_LVLH
@@ -98,9 +114,7 @@ Z_LVLH = -R_0 / norm(R_0);
 Y_LVLH = -cross(R_0,V_0) / norm(cross(R_0,V_0));
 X_LVLH =  cross(Y_LVLH,Z_LVLH);
 
-% w_LVLH_ECI = 2*pi/Period * Y_LVLH;
-
-C = [X_LVLH;Y_LVLH;Z_LVLH]
+C = [X_LVLH;Y_LVLH;Z_LVLH];
 
 n0 = (trace(C) + 1) ^ (1/2) / 2;
 e0 = [(C(2,3)-C(3,2)) / (4*n0); ...
@@ -115,7 +129,7 @@ psi0   = atan2(C(1,2), C(1,1));
 
 E0 = [phi0;theta0;psi0];
 
-out = sim("aero421_finalProjectSim.slx")
+out = sim("aero421_finalProjectSim.slx");
 
 %% Plot Results
 
@@ -145,7 +159,7 @@ plot(out.q_b_ECI(:,1),out.q_b_ECI(:,3))
 plot(out.q_b_ECI(:,1),out.q_b_ECI(:,4))
 plot(out.q_b_ECI(:,1),out.q_b_ECI(:,5))
 
-legend("\eta","\epsilon_{x}","\epsilon_{y}","\epsilon_{z}")
+legend("\eta","\epsilon_{1}","\epsilon_{2}","\epsilon_{3}")
 title("Quaternions")
 xlabel("time (sec)")
 ylabel("Quaternion Parameter")
@@ -215,4 +229,18 @@ function ax = vect2cross(a)
 
 ax = [0 -a(3) a(2); a(3) 0 -a(1); -a(2) a(1) 0];
 
+end
+
+function J = J(m,dim,r)
+x = dim(1);
+y = dim(2);
+z = dim(3);
+
+I = diag([m*(y^2+z^2); ...
+          m*(x^2+z^2); ...
+          m*(x^2+y^2)]);
+
+rx = vect2cross(r);
+
+J = I/12 - m * rx * rx;
 end
