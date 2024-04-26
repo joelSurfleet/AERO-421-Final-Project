@@ -129,6 +129,19 @@ psi0   = atan2(C(1,2), C(1,1));
 
 E0 = [phi0;theta0;psi0];
 
+%% Magnetic Field Model
+
+aMag = 6371.2e3; % m
+g0 = -1450.9e-9; % T
+h1 = 4652.5e-9; % T
+g1 = -29404.8e-9; % T
+rMag = norm(R_0);
+
+mehielSat.m = aMag^3*[g0;h1;g1]; % Dipole Vector For the Magnetic Field m^3*T
+
+% I think that Davey did the COEs (for rECEF)
+mehielSat.b = (3*(mehielSat.m'*rMag)*rMag-rMag*mehielSat.m)/rMag^5;
+
 out = sim("aero421_finalProjectSim.slx");
 
 %% Plot Results
