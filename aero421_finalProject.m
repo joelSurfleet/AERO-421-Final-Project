@@ -12,22 +12,22 @@ mBus = 500; % mass of bus, in kg
 mTot = 640; % satellite stowed mass, in kg
 
 % dimensions of components
-dimSen = [0.25,0.25,1];
-dimSol = [2,3,0.05];
-dimBus = [2,2,2];
+dimSen = [0.25;0.25;1];
+dimSol = [2;3;0.05];
+dimBus = [2;2;2];
 
 % locations of centroids relative to center of bus
-rSen  = [0,0,1.5];
-rSol1 = [0,-2.5,0];
-rSol2 = [0,2.5,0];
-rBus  = [0,0,0];
+rSen  = [0;0;1.5];
+rSol1 = [0;-2.5;0];
+rSol2 = [0;2.5;0];
+rBus  = [0;0;0];
 
 % CoM, center of mass;
 % assume density of stowed spacecraft is uniform in the 2m cube
-detumbSat.CoM = [0,0,0]; % in m
+detumbSat.CoM = [0;0;0]; % in m
 
 % deployed CoM, in m
-mehielSat.CoM = [0,0,mSen*(rSen(3))/mTot];
+mehielSat.CoM = [0;0;mSen*(rSen(3))/mTot];
 
 rSen  = rSen  - mehielSat.CoM;
 rSol1 = rSol1 - mehielSat.CoM;
@@ -45,37 +45,37 @@ rBus  = rBus  - mehielSat.CoM;
 % if 2 surfaces have the same z coord, then it goes from -y to +y
 % then -x to +x if both z and y are the same
 
-z = [0,0,-1];
-Z = [0,0,1];
-y = [0,-1,0];
-Y = [0,1,0];
-x = [-1,0,0];
-X = [1,0,0];
+z = [0;0;-1];
+Z = [0;0;1];
+y = [0;-1;0];
+Y = [0;1;0];
+x = [-1;0;0];
+X = [1;0;0];
 
 % Nomenclature: Object, Direction
-mehielSat.names = ["Bus -z";"-y Panel -z";"+y Panel -z";"-y Panel -y"; ... 
-    "-y Panel -x";"-y Panel +x";"Bus -y";"Bus -x";"Bus +x";"Bus +y"; ...
-    "+y Panel -x";"+y Panel +x";"+y Panel +y";"-y Panel +z"; ...
-    "+y Panel +z";"Bus +z";"Sensor -y";"Sensor -x";"Sensor +x"; ...
-    "Sensor -y";"Sensor +z"];
+mehielSat.names = ["Bus -z","-y Panel -z","+y Panel -z","-y Panel -y", ... 
+    "-y Panel -x","-y Panel +x","Bus -y","Bus -x","Bus +x","Bus +y", ...
+    "+y Panel -x","+y Panel +x","+y Panel +y","-y Panel +z", ...
+    "+y Panel +z","Bus +z","Sensor -y","Sensor -x","Sensor +x", ...
+    "Sensor -y","Sensor +z"];
 
-mehielSat.n = [z;z;z;y;x;X;y;x;X;Y;x;X;Y;Z;Z;Z;y;x;X;y;Z];
+mehielSat.n = [z,z,z,y,x,X,y,x,X,Y,x,X,Y,Z,Z,Z,y,x,X,y,Z];
 
-mehielSat.A = [4;6;6;0.1;0.15;0.15;4;4;4;4;0.15;0.15;0.1;6;6;4;0.25;0.25; ...
-    0.25;0.25;0.0625];
+mehielSat.A = [4,6,6,0.1,0.15,0.15,4,4,4,4,0.15,0.15,0.1,6,6,4,0.25,0.25, ...
+    0.25,0.25,0.0625];
 
-mehielSat.C = [[0,0,-1];[0,-2.5,-0.025];[0,2.5,-0.025];[0,-4,0];[-1,-2.5,0]; ...
-    [1,-2.5,0];[0,1,0];[-1,0,0];[1,0,0];[0,1,0];[-1,2.5,0];[1,2.5,0]; ...
-    [0,4,0];[0,-2.5,0.025];[0,2.5,0.025];[0,0,1];[0,-0.125,1.5]; ...
-    [-0.125,0,1.5];[0.125,0,1.5];[0,0.125,1.5];[0,0,2]];
+mehielSat.C = [[0;0;-1],[0;-2.5;-0.025],[0;2.5;-0.025],[0;-4;0],[-1;-2.5;0], ...
+    [1;-2.5;0],[0;1;0],[-1;0;0],[1;0;0],[0;1;0],[-1;2.5;0],[1;2.5;0], ...
+    [0;4;0],[0;-2.5;0.025],[0;2.5;0.025],[0;0;1],[0;-0.125;1.5], ...
+    [-0.125;0;1.5],[0.125;0;1.5],[0;0.125;1.5],[0;0;2]];
 
 mehielSat.C = mehielSat.C - mehielSat.CoM;
 
 indices = [1,7,8,9,10,16];
 
-detumbSat.n = mehielSat.n(indices,:);
-detumbSat.A = mehielSat.A(indices,:);
-detumbSat.C = mehielSat.C(indices,:);
+detumbSat.n = mehielSat.n(:,indices);
+detumbSat.A = mehielSat.A(:,indices);
+detumbSat.C = mehielSat.C(:,indices);
 
 % J, moment of inertia matrix
 % assume the body frame is the principle axis frame 
@@ -93,6 +93,8 @@ COE_0 = [53335.2,0,0,98.43,0,0];
 
 [R_0,V_0] = COE2RV(COE_0,mu);
 
+state_0 = [R_0';V_0'];
+
 Period = 2*pi*sqrt(norm(R_0)^3/mu);
 
 % Initial Attitude
@@ -104,11 +106,12 @@ Period = 2*pi*sqrt(norm(R_0)^3/mu);
 detumbSat.w0 = [-0.05;   0.03;   0.2];
 mehielSat.w0 = [0.001; -0.001; 0.002];
 
-%% Part 2
+% Magnetic Dipole
+mehielSat.m = [0;0;-0.5]; % A*m^2
+
+% Part 2
 % The spacecraft initial attitude is such that it is aligned with F_LVLH
 % Compute initial quaternion and EULER angles relating Fb and Feci
-
-T = 0;
 
 Z_LVLH = -R_0 / norm(R_0);
 Y_LVLH = -cross(R_0,V_0) / norm(cross(R_0,V_0));
@@ -129,19 +132,8 @@ psi0   = atan2(C(1,2), C(1,1));
 
 E0 = [phi0;theta0;psi0];
 
-%% Magnetic Field Model
-
-aMag = 6371.2e3; % m
-g0 = -1450.9e-9; % T
-h1 = 4652.5e-9; % T
-g1 = -29404.8e-9; % T
-rMag = norm(R_0);
-
-mehielSat.m = aMag^3*[g0;h1;g1]; % Dipole Vector For the Magnetic Field m^3*T
-
-% I think that Davey did the COEs (for rECEF)
-mehielSat.b = (3*(mehielSat.m'*rMag)*rMag-rMag*mehielSat.m)/rMag^5;
-
+s0 = X; % ECI
+%% Run Sim
 out = sim("aero421_finalProjectSim.slx");
 
 %% Plot Results
@@ -203,7 +195,7 @@ function [R,V] = COE2RV(coe,mu)
 %     (4) inc   = Inclination in degrees
 %     (5) w     = Argument of Perigee in degrees
 %     (6) Theta  = True Anomaly in degrees
-%   mu: gravitational parameter of object being orbitted
+%   mu: gravitational parameter of object being orbited
 
 h     = coe(1);
 ecc   = coe(2);
