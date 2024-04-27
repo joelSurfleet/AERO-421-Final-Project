@@ -1,4 +1,4 @@
-% AERO 421 - Project Deliverable 1 
+% AERO 421 - Project Deliverable 1
 % Group 25
 
 %% Initial Values/Givens
@@ -45,6 +45,7 @@ rBus  = rBus  - mehielSat.CoM;
 % if 2 surfaces have the same z coord, then it goes from -y to +y
 % then -x to +x if both z and y are the same
 
+% Unit vectors just to make things easy
 z = [0;0;-1];
 Z = [0;0;1];
 y = [0;-1;0];
@@ -52,6 +53,7 @@ Y = [0;1;0];
 x = [-1;0;0];
 X = [1;0;0];
 
+% List of Surface names in order
 % Nomenclature: Object, Direction
 mehielSat.names = ["Bus -z","-y Panel -z","+y Panel -z","-y Panel -y", ... 
     "-y Panel -x","-y Panel +x","Bus -y","Bus -x","Bus +x","Bus +y", ...
@@ -59,18 +61,23 @@ mehielSat.names = ["Bus -z","-y Panel -z","+y Panel -z","-y Panel -y", ...
     "+y Panel +z","Bus +z","Sensor -y","Sensor -x","Sensor +x", ...
     "Sensor -y","Sensor +z"];
 
+% Normal Vectors of mehielsat surfaces
 mehielSat.n = [z,z,z,y,x,X,y,x,X,Y,x,X,Y,Z,Z,Z,y,x,X,y,Z];
 
+% Areas of surfaces
 mehielSat.A = [4,6,6,0.1,0.15,0.15,4,4,4,4,0.15,0.15,0.1,6,6,4,0.25,0.25, ...
     0.25,0.25,0.0625];
 
+% Centers of surfaces relative to center of bus
 mehielSat.C = [[0;0;-1],[0;-2.5;-0.025],[0;2.5;-0.025],[0;-4;0],[-1;-2.5;0], ...
     [1;-2.5;0],[0;1;0],[-1;0;0],[1;0;0],[0;1;0],[-1;2.5;0],[1;2.5;0], ...
     [0;4;0],[0;-2.5;0.025],[0;2.5;0.025],[0;0;1],[0;-0.125;1.5], ...
     [-0.125;0;1.5],[0.125;0;1.5],[0;0.125;1.5],[0;0;2]];
 
+% Adjust surface centers for COM
 mehielSat.C = mehielSat.C - mehielSat.CoM;
 
+% Bus inidices
 indices = [1,7,8,9,10,16];
 
 detumbSat.n = mehielSat.n(:,indices);
@@ -138,19 +145,19 @@ out = sim("aero421_finalProjectSim.slx");
 
 %% Plot Results
 
-out.E_b_ECI(:,2:4) = out.E_b_ECI(:,2:4) .* (180/pi);
+out.E(:,2:4) = out.E(:,2:4) .* (180/pi);
 
 close all;
 
-figure('numbertitle','off','name','final project part 2','windowstate','maximized')
+figure('numbertitle','off','name','final project part 3','windowstate','maximized')
 
-sgtitle("Final Project Part 2")
+sgtitle("Final Project Part 3")
 
 subplot(3,1,1)
 grid on; hold on;
-plot(out.w_b_ECI(:,1),out.w_b_ECI(:,2))
-plot(out.w_b_ECI(:,1),out.w_b_ECI(:,3))
-plot(out.w_b_ECI(:,1),out.w_b_ECI(:,4))
+plot(out.w(:,1),out.w(:,2))
+plot(out.w(:,1),out.w(:,3))
+plot(out.w(:,1),out.w(:,4))
 
 legend("\omega_{x}","\omega_{y}","\omega_{z}")
 title("Angular Velocities")
@@ -159,10 +166,10 @@ ylabel("angular velocity (rad/s)")
 
 subplot(3,1,2)
 grid on; hold on;
-plot(out.q_b_ECI(:,1),out.q_b_ECI(:,2))
-plot(out.q_b_ECI(:,1),out.q_b_ECI(:,3))
-plot(out.q_b_ECI(:,1),out.q_b_ECI(:,4))
-plot(out.q_b_ECI(:,1),out.q_b_ECI(:,5))
+plot(out.q(:,1),out.q(:,2))
+plot(out.q(:,1),out.q(:,3))
+plot(out.q(:,1),out.q(:,4))
+plot(out.q(:,1),out.q(:,5))
 
 legend("\eta","\epsilon_{1}","\epsilon_{2}","\epsilon_{3}")
 title("Quaternions")
@@ -171,14 +178,62 @@ ylabel("Quaternion Parameter")
 
 subplot(3,1,3)
 grid on; hold on;
-plot(out.E_b_ECI(:,1),out.E_b_ECI(:,2))
-plot(out.E_b_ECI(:,1),out.E_b_ECI(:,3))
-plot(out.E_b_ECI(:,1),out.E_b_ECI(:,4))
+plot(out.E(:,1),out.E(:,2))
+plot(out.E(:,1),out.E(:,3))
+plot(out.E(:,1),out.E(:,4))
 
 legend("\phi","\theta","\psi")
 title("Euler Angles")
 xlabel("time (sec)")
 ylabel("angle (degrees)")
+
+figure('numbertitle','off','name','final project part 3','windowstate','maximized')
+
+sgtitle("Final Project Part 3")
+
+subplot(4,1,1)
+grid on; hold on;
+plot(out.E(:,1),out.Ta(1,:))
+plot(out.E(:,1),out.Ta(2,:))
+plot(out.E(:,1),out.Ta(3,:))
+
+legend("T_{ax}","T_{ay}","T_{az}")
+title("Atmospheric Torque")
+xlabel("time (sec)")
+ylabel("Torque (N*m)")
+
+subplot(4,1,2)
+grid on; hold on;
+plot(out.E(:,1),out.Tb(1,:))
+plot(out.E(:,1),out.Tb(2,:))
+plot(out.E(:,1),out.Tb(3,:))
+
+legend("T_{bx}","T_{by}","T_{bz}")
+title("Magnetic Torque")
+xlabel("time (sec)")
+ylabel("Torque (N*m)")
+
+subplot(4,1,3)
+grid on; hold on;
+plot(out.E(:,1),out.Ts(1,:))
+plot(out.E(:,1),out.Ts(2,:))
+plot(out.E(:,1),out.Ts(3,:))
+
+legend("T_{sx}","T_{sy}","T_{sz}")
+title("Solar Torque")
+xlabel("time (sec)")
+ylabel("Torque (N*m)")
+
+subplot(4,1,4)
+grid on; hold on;
+plot(out.E(:,1),out.Tg(1,:))
+plot(out.E(:,1),out.Tg(2,:))
+plot(out.E(:,1),out.Tg(3,:))
+
+legend("T_{gx}","T_{gy}","T_{gz}")
+title("Gravitation Torque")
+xlabel("time (sec)")
+ylabel("Torque (N*m)")
 
 %% Functions
 
