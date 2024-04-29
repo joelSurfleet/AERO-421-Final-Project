@@ -1,4 +1,4 @@
-% AERO 421 - Project Deliverable 1
+% AERO 421 - MehielSat (Final Project)
 % Group 25
 
 %% Initial Values/Givens
@@ -29,6 +29,7 @@ detumbSat.CoM = [0;0;0]; % in m
 % deployed CoM, in m
 mehielSat.CoM = [0;0;mSen*(rSen(3))/mTot];
 
+% distance between mehielSat CoM and Component center
 rSen  = rSen  - mehielSat.CoM;
 rSol1 = rSol1 - mehielSat.CoM;
 rSol2 = rSol2 - mehielSat.CoM;
@@ -36,11 +37,13 @@ rBus  = rBus  - mehielSat.CoM;
 
 % Body Geometry:
 
+% Nomenclature:
 % mehielSat.names = names of surfaces
 % mehielSat.n = Normal Vectors
 % mehielSat.c = Centers
 % mehielSat.A = Areas
 
+% Methodology
 % Done in order of center z coord from -z to +z 
 % if 2 surfaces have the same z coord, then it goes from -y to +y
 % then -x to +x if both z and y are the same
@@ -89,22 +92,20 @@ detumbSat.C = mehielSat.C(:,indices);
 % stowed moment of inertia, in kg*m^2
 detumbSat.J = J(mTot,dimBus,detumbSat.CoM);
 
-%moment of inertia for deployed configuration, in kg*m^2
+% Moment of Inertia for deployed configuration, in kg*m^2
 mehielSat.J = J(mSen,dimSen,rSen) + J(mSol,dimSol,rSol1) ...
     + J(mSol,dimSol,rSol2) + J(mBus,dimBus,rBus);
 
-% Orbit Data
-mu = 398600; % Km
+% Orbital Data
 
-COE_0 = [53335.2,0,0,98.43,0,0];
+mu = 398600; % gravitational parameter, in km
+COE_0 = [53335.2,0,0,98.43,0,0]; % initial orbital elements [h,ecc,RAAN,inc,w,omega]
+[R_0,V_0] = COE2RV(COE_0,mu); % initial R and V vectors in LVLH
+state_0 = [R_0';V_0']; % inital state 
+Period = 2*pi*sqrt(norm(R_0)^3/mu); % period of mehielSat orbit
 
-[R_0,V_0] = COE2RV(COE_0,mu);
+% Initial Attitude of MehielSat
 
-state_0 = [R_0';V_0'];
-
-Period = 2*pi*sqrt(norm(R_0)^3/mu);
-
-% Initial Attitude
 % Quaternion Relating F_b to F_LVLH
 % e0 = [0;0;0];
 % n0 = 1;
