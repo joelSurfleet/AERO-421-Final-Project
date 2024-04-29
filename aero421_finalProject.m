@@ -152,7 +152,7 @@ close all;
 
 figure('numbertitle','off','name','final project part 3','windowstate','maximized')
 
-sgtitle("Final Project Part 3")
+sgtitle("Spacecraft Attitude over 5 Periods")
 
 subplot(3,1,1)
 grid on; hold on;
@@ -190,7 +190,7 @@ ylabel("angle (degrees)")
 
 figure('numbertitle','off','name','final project part 3','windowstate','maximized')
 
-sgtitle("Final Project Part 3")
+sgtitle("Disturbance Torques on Spacecraft over 5 Periods")
 
 subplot(4,1,1)
 grid on; hold on;
@@ -199,7 +199,7 @@ plot(out.E(:,1),out.Ta(2,:))
 plot(out.E(:,1),out.Ta(3,:))
 
 legend("T_{ax}","T_{ay}","T_{az}")
-title("Atmospheric Torque")
+title("Atmospheric Drag Torque")
 xlabel("time (sec)")
 ylabel("Torque (N*m)")
 
@@ -221,7 +221,7 @@ plot(out.E(:,1),out.Ts(2,:))
 plot(out.E(:,1),out.Ts(3,:))
 
 legend("T_{sx}","T_{sy}","T_{sz}")
-title("Solar Torque")
+title("SRP Torque")
 xlabel("time (sec)")
 ylabel("Torque (N*m)")
 
@@ -232,7 +232,7 @@ plot(out.E(:,1),out.Tg(2,:))
 plot(out.E(:,1),out.Tg(3,:))
 
 legend("T_{gx}","T_{gy}","T_{gz}")
-title("Gravitation Torque")
+title("Gravity Gradient Torque")
 xlabel("time (sec)")
 ylabel("Torque (N*m)")
 
