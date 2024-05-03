@@ -104,12 +104,6 @@ COE_0 = [53335.2,0,0,98.43,0,0]; % initial orbital elements [h,ecc,RAAN,inc,w,om
 state_0 = [R_0';V_0']; % inital state 
 Period = 2*pi*sqrt(norm(R_0)^3/mu); % period of mehielSat orbit
 
-% Initial Attitude of MehielSat
-
-% Quaternion Relating F_b to F_LVLH
-% e0 = [0;0;0];
-% n0 = 1;
-
 % Initial Angular Velocity
 detumbSat.w0 = [-0.05;   0.03;   0.2];
 mehielSat.w0 = [0.001; -0.001; 0.002];
@@ -120,19 +114,27 @@ mehielSat.m = [0;0;-0.5]; % A*m^2
 % Part 2
 % The spacecraft initial attitude is such that it is aligned with F_LVLH
 % Compute initial quaternion and EULER angles relating Fb and Feci
-
 Z_LVLH = -R_0 / norm(R_0);
 Y_LVLH = -cross(R_0,V_0) / norm(cross(R_0,V_0));
 X_LVLH =  cross(Y_LVLH,Z_LVLH);
 
 C = [X_LVLH;Y_LVLH;Z_LVLH];
 
+omega_LVLH0 = mehielSat.w0 + 2*pi/Period*Y_LVLH';
+
+% Initial Attitude of MehielSat
+% inital Quaternion Relating F_b to F_LVLH
+q0_LVLH = [0;0;0;1];
+
+% initial Euler Angles relating F_b to F_LVLH
+E0_LVLH = [0;0;0];
+
 n0 = (trace(C) + 1) ^ (1/2) / 2;
 e0 = [(C(2,3)-C(3,2)) / (4*n0); ...
       (C(3,1)-C(1,3)) / (4*n0); ...
       (C(1,2)-C(2,1)) / (4*n0)];
 
-q0 = [n0;e0];
+q0 = [e0;n0];
 
 phi0   = atan2(C(2,3), C(3,3));
 theta0 = -asin(C(1,3));
