@@ -143,8 +143,35 @@ psi0   = atan2(C(1,2), C(1,1));
 E0 = [phi0;theta0;psi0];
 
 s0 = X; % ECI
+
+% Time Performance
+
+Mp = .1; % Max overshoot
+% ts = 10000; % Settle time
+ts = 100; % Settle Time
+% kp = .1;
+% kd = .1;
+% zeta = sqrt(1-(exp(-4.4)/0.02)^2);
+zeta = 0.65; % Damping Ratio
+wd = 4.4/zeta/ts;
+wn = wd/sqrt(1-zeta^2);
+beta = atan(sqrt((1 - zeta^2)/zeta));
+tr = (pi - beta)/wd;
+
+Kp = 2*detumbSat.J*wn^2*[1;1;1];
+Kd = detumbSat.J*2*zeta*wn*[1;1;1];
+
+% Initializing Reaction Wheel Parameters
+
+mWheel = 1; % kg Reaction Wheel Mass
+Is = 1.2; % kg/m^2
+It = 0.6; % kg/m^2
+Iw = [Is 0 0; 0 It 0; 0 0 It];
+
+I = (mehielSat.J + (2*It + Is + mWheel) * eye(3));
+
 %% Run Sim
-out = sim("aero421_finalProjectSim.slx");
+out = sim("aero421_finalProjectSim_Part5.slx");
 
 %% Plot Results
 
@@ -155,7 +182,7 @@ close all;
 
 figure('numbertitle','off','name','final project part 4','windowstate','maximized')
 
-sgtitle("Spacecraft Attitude in ECI")
+sgtitle("Spacecraft Attitude over 5 Periods")
 
 subplot(3,1,1)
 grid on; hold on;
@@ -241,7 +268,7 @@ ylabel("Torque (N*m)")
 
 figure('numbertitle','off','name','final project part 4','windowstate','maximized')
 
-sgtitle("Spacecraft Attitude in LVLH")
+sgtitle("Spacecraft Attitude in LVLH over 5 Periods")
 
 subplot(3,1,1)
 grid on; hold on;
