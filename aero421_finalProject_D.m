@@ -149,25 +149,17 @@ s0 = X; % ECI
 
 % Reaction Wheel Properties
 m_w = 1; % Mass of Reaction Wheel
-Is = 1.2; % Reaction Wheel Moment of Inertia, Spin Axis
-It = 0.6; % Reaction Wheel Moment of Inertia, Translational Axis
-detumbSat.Jrw = detumbSat.J + (2*It + Is + 2 * m_w) * eye(3);
-
-% Time Performance Characteristics for Control Law
-
-ts = 10000; % Settle time
-zeta = sqrt(1-(exp(-4.4)/0.02)^2); % Dampening Coefficient
-wn = 4.4/(zeta*ts); % Natural Angular Frequency
-Kp = wn^2*detumbSat.Jrw; % Proportional
-Kd = 2*zeta*wn*detumbSat.Jrw; % Derivative
+Is = 1.2*eye(3); % Reaction Wheel Moment of Inertia, Spin Axis
+It = 0.6*eye(3); % Reaction Wheel Moment of Inertia, Translational Axis
+mehielSat.Jrw = mehielSat.J + (2*It + Is + 2 * m_w);
 
 % Time Performance Characteristics for Reaction Wheels
-
 ts_rw = 100; % Settle Time
 zeta_rw = 0.65; % Dampening Coefficient
-wn_rw = 4.4/(zeta*ts); % Natural Frequency
-Kp_rw = wn_rw^2*detumbSat.J; % Proportional
-Kd_rw = 2*zeta_rw*wn_rw*detumbSat.J; % Derivative
+wn_rw = 4.4/(zeta_rw*ts_rw); % Natural Frequency
+Kp_rw = wn_rw^2*mehielSat.Jrw; % Proportional
+Kd_rw = 2*zeta_rw*wn_rw*mehielSat.Jrw; % Derivative
+CapOmegaDot0 = [0;0;0];
 
 
 %% Run Sim
