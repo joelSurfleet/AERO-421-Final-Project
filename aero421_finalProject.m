@@ -120,22 +120,25 @@ X_LVLH =  cross(Y_LVLH,Z_LVLH);
 
 C = [X_LVLH;Y_LVLH;Z_LVLH];
 
-omega_LVLH0 = mehielSat.w0 + 2*pi/Period*Y_LVLH';
+%omega_LVLH0 = mehielSat.w0 + 2*pi/Period*Y_LVLH'; % rotation about s/c x-axis 
 
 % Initial Attitude of MehielSat
 % inital Quaternion Relating F_b to F_LVLH
-q0_LVLH = [0;0;0;1];
+q0_LVLH = [1;0;0;0];
 
 % initial Euler Angles relating F_b to F_LVLH
 E0_LVLH = [0;0;0];
 
+% initial quaternion relating F_b to F_ECI
 n0 = (trace(C) + 1) ^ (1/2) / 2;
+
 e0 = [(C(2,3)-C(3,2)) / (4*n0); ...
       (C(3,1)-C(1,3)) / (4*n0); ...
       (C(1,2)-C(2,1)) / (4*n0)];
 
-q0 = [e0;n0];
+q0 = [n0;e0];
 
+% initial eular angles relating F_b to F_ECI    
 phi0   = atan2(C(2,3), C(3,3));
 theta0 = -asin(C(1,3));
 psi0   = atan2(C(1,2), C(1,1));
@@ -144,34 +147,45 @@ E0 = [phi0;theta0;psi0];
 
 s0 = X; % ECI
 
-% Time Performance
+% Reaction Wheel Properties
+m_w = 1; % Mass of Reaction Wheel
+Is = 1.2*eye(3); % Reaction Wheel Moment of Inertia, Spin Axis
+It = 0.6*eye(3); % Reaction Wheel Moment of Inertia, Translational Axis
+mehielSat.Jrw = mehielSat.J + (2*It + Is + 2 * m_w);
 
-Mp = .1; % Max overshoot
-ts = 10000; % Settle time
-% kp = .1;
-% kd = .1;
-zeta = sqrt(1-(exp(-4.4)/0.02)^2);
-wd = 4.4/zeta/ts;
-wn = wd/sqrt(1-zeta^2);
-beta = atan(sqrt((1 - zeta^2)/zeta));
-tr = (pi - beta)/wd;
+% Time Performance Characteristics for Reaction Wheels
+ts_rw = 100; % Settle Time
+zeta_rw = 0.65; % Dampening Coefficient
+wn_rw = 4.4/(zeta_rw*ts_rw); % Natural Frequency
+Kp_rw = wn_rw^2*mehielSat.Jrw; % Proportional
+Kd_rw = 2*zeta_rw*wn_rw*mehielSat.Jrw; % Derivative
+CapOmegaDot0 = [0;0;0];
 
-Kp = 2*detumbSat.J*wn^2*[1;1;1];
-Kd = detumbSat.J*2*zeta*wn*[1;1;1];
 
 %% Run Sim
-out = sim("Fries.slx");
+out = sim("aero421_finalProjectSim.slx");
 
 %% Plot Results
 
+E_LVLH = reshape(out.E_LVLH.signals.values,[3,6000])'; % Extracting E_LVLH
+q_LVLH = reshape(out.q_LVLH.signals.values,[4,6000])'; % Extracting q_LVLH
+w_LVLH = reshape(out.w_LVLH.signals.values,[3,6000])'; % Extracting w_LVLH
+omegaCap = reshape(out.omegaCap.signals.values,[3,6000])';
+Mw = reshape(out.Mw.signals.values,[3,6000])';
+Mc = reshape(out.Tc.signals.values,[3,6000])';
+Ta = reshape(out.Ta.signals.values,[3,6000])';
+Tb = reshape(out.Tb.signals.values,[3,6000])';
+Tg = reshape(out.Tg.signals.values,[3,6000])';
+Ts = reshape(out.Ts.signals.values,[3,6000])';
+
 out.E(:,2:4) = out.E(:,2:4) .* (180/pi);
-out.E_LVLH(:,2:4) = out.E_LVLH(:,2:4) .* (180/pi);
+E_LVLH(:,1:3) = E_LVLH(:,1:3) .* (180/pi);
 
 close all;
 
 figure('numbertitle','off','name','final project part 4','windowstate','maximized')
 
-sgtitle("Spacecraft Attitude over 5 Periods")
+sgtitle("Body to ECI Spacecraft Attitude over 5 Periods")
 
 subplot(3,1,1)
 grid on; hold on;
@@ -213,9 +227,9 @@ sgtitle("Disturbance Torques on Spacecraft over 5 Periods")
 
 subplot(4,1,1)
 grid on; hold on;
-plot(out.tout(:,1),out.Ta(1,:))
-plot(out.tout(:,1),out.Ta(2,:))
-plot(out.tout(:,1),out.Ta(3,:))
+plot(out.tout(:,1),Ta(:,1))
+plot(out.tout(:,1),Ta(:,2))
+plot(out.tout(:,1),Ta(:,3))
 
 legend("T_{ax}","T_{ay}","T_{az}")
 title("Atmospheric Drag Torque")
@@ -224,9 +238,9 @@ ylabel("Torque (N*m)")
 
 subplot(4,1,2)
 grid on; hold on;
-plot(out.tout(:,1),out.Tb(1,:))
-plot(out.tout(:,1),out.Tb(2,:))
-plot(out.tout(:,1),out.Tb(3,:))
+plot(out.tout(:,1),Tb(:,1))
+plot(out.tout(:,1),Tb(:,2))
+plot(out.tout(:,1),Tb(:,3))
 
 legend("T_{bx}","T_{by}","T_{bz}")
 title("Magnetic Torque")
@@ -235,9 +249,9 @@ ylabel("Torque (N*m)")
 
 subplot(4,1,3)
 grid on; hold on;
-plot(out.tout(:,1),out.Ts(1,:))
-plot(out.tout(:,1),out.Ts(2,:))
-plot(out.tout(:,1),out.Ts(3,:))
+plot(out.tout(:,1),Ts(:,1))
+plot(out.tout(:,1),Ts(:,2))
+plot(out.tout(:,1),Ts(:,3))
 
 legend("T_{sx}","T_{sy}","T_{sz}")
 title("SRP Torque")
@@ -246,9 +260,9 @@ ylabel("Torque (N*m)")
 
 subplot(4,1,4)
 grid on; hold on;
-plot(out.tout(:,1),out.Tg(1,:))
-plot(out.tout(:,1),out.Tg(2,:))
-plot(out.tout(:,1),out.Tg(3,:))
+plot(out.tout(:,1),Tg(:,1))
+plot(out.tout(:,1),Tg(:,2))
+plot(out.tout(:,1),Tg(:,3))
 
 legend("T_{gx}","T_{gy}","T_{gz}")
 title("Gravity Gradient Torque")
@@ -257,13 +271,13 @@ ylabel("Torque (N*m)")
 
 figure('numbertitle','off','name','final project part 4','windowstate','maximized')
 
-sgtitle("Spacecraft Attitude in LVLH over 5 Periods")
+sgtitle("Body to LVLH Spacecraft Attitude over 5 Periods")
 
 subplot(3,1,1)
 grid on; hold on;
-plot(out.tout(:,1),out.w_LVLH(:,2))
-plot(out.tout(:,1),out.w_LVLH(:,3))
-plot(out.tout(:,1),out.w_LVLH(:,4))
+plot(out.tout(:,1),w_LVLH(:,1))
+plot(out.tout(:,1),w_LVLH(:,2))
+plot(out.tout(:,1),w_LVLH(:,3))
 
 legend("\omega_{x}","\omega_{y}","\omega_{z}")
 title("Angular Velocities")
@@ -272,10 +286,10 @@ ylabel("angular velocity (rad/s)")
 
 subplot(3,1,2)
 grid on; hold on;
-plot(out.tout(:,1),out.q_LVLH(:,2))
-plot(out.tout(:,1),out.q_LVLH(:,3))
-plot(out.tout(:,1),out.q_LVLH(:,4))
-plot(out.tout(:,1),out.q_LVLH(:,5))
+plot(out.tout(:,1),q_LVLH(:,1))
+plot(out.tout(:,1),q_LVLH(:,2))
+plot(out.tout(:,1),q_LVLH(:,3))
+plot(out.tout(:,1),q_LVLH(:,4))
 
 legend("\eta","\epsilon_{1}","\epsilon_{2}","\epsilon_{3}")
 title("Quaternions")
@@ -284,14 +298,40 @@ ylabel("Quaternion Parameter")
 
 subplot(3,1,3)
 grid on; hold on;
-plot(out.tout(:,1),out.E_LVLH(:,2))
-plot(out.tout(:,1),out.E_LVLH(:,3))
-plot(out.tout(:,1),out.E_LVLH(:,4))
+plot(out.tout(:,1),E_LVLH(:,1))
+plot(out.tout(:,1),E_LVLH(:,2))
+plot(out.tout(:,1),E_LVLH(:,3))
 
 legend("\phi","\theta","\psi")
 title("Euler Angles")
 xlabel("time (sec)")
 ylabel("angle (degrees)")
+
+figure('NumberTitle','off','Name','Final Project Part 6','WindowState','maximized')
+
+sgtitle('Reaction Wheel Speeds and Commanded Moment')
+
+subplot(2,1,1)
+grid on; hold on;
+plot(out.tout(:,1),omegaCap(:,1))
+plot(out.tout(:,1),omegaCap(:,2))
+plot(out.tout(:,1),omegaCap(:,3))
+
+legend("\omega_{w1}","\omega_{w2}","\omega_{w3}")
+title('Reaction Wheel Speeds')
+xlabel('time (seconds)')
+ylabel('angular velocity (rad/s)')
+
+subplot(2,1,2)
+grid on; hold on;
+plot(out.tout(:,1),Mc(:,1))
+plot(out.tout(:,1),Mc(:,2))
+plot(out.tout(:,1),Mc(:,3))
+
+legend("M_{cx}","M_{cy}","M_{cz}")
+title('Commanded Moment Components')
+xlabel('time (seconds)')
+ylabel('Commanded Moment (N*m)')
 
 %% Functions
 
