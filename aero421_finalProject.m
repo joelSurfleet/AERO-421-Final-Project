@@ -3,7 +3,7 @@
 
 %% Initial Values/Givens
 % Mass Properties
-clc;clear;
+% clc;clear;
 
 % mass of components
 mSen = 100; % mass of sensor, in kg
@@ -148,9 +148,12 @@ E0 = [phi0;theta0;psi0];
 s0 = X; % ECI
 
 % Reaction Wheel Properties
-m_w = 1; % Mass of Reaction Wheel
-Is = 1.2*eye(3); % Reaction Wheel Moment of Inertia, Spin Axis
-It = 0.6*eye(3); % Reaction Wheel Moment of Inertia, Translational Axis
+% old: m_w = 1; % Mass of Reaction Wheel, kg
+m_w = 10; 
+R_w = 0.337/2; % Radius of Wheel, in m
+L_w = 0.121; % Length of Wheel, in m
+Is = m_w*R_w^2/2*eye(3); % Reaction Wheel Moment of Inertia, Spin Axis
+It = m_w*L_w^2/3*eye(3); % Reaction Wheel Moment of Inertia, Translational Axis
 mehielSat.Jrw = mehielSat.J + (2*It + Is + 2 * m_w);
 
 % Time Performance Characteristics for Reaction Wheels
@@ -161,9 +164,10 @@ Kp_rw = wn_rw^2*mehielSat.Jrw; % Proportional
 Kd_rw = 2*zeta_rw*wn_rw*mehielSat.Jrw; % Derivative
 CapOmegaDot0 = [0;0;0];
 
-
 %% Run Sim
-out = sim("aero421_finalProjectSim.slx");
+% out = sim("aero421_finalProjectSim.slx");
+% 
+% warning('off', 'MATLAB:datetime:NonIntegerInput');
 
 %% Plot Results
 
@@ -185,7 +189,7 @@ close all;
 
 figure('numbertitle','off','name','final project part 4','windowstate','maximized')
 
-sgtitle("Body to ECI Spacecraft Attitude over 5 Periods")
+sgtitle("Body to ECI Spacecraft Attitude over a Period")
 
 subplot(3,1,1)
 grid on; hold on;
@@ -223,7 +227,7 @@ ylabel("angle (degrees)")
 
 figure('numbertitle','off','name','final project part 4','windowstate','maximized')
 
-sgtitle("Disturbance Torques on Spacecraft over 5 Periods")
+sgtitle("Disturbance Torques on Spacecraft over a Period")
 
 subplot(4,1,1)
 grid on; hold on;
@@ -271,7 +275,7 @@ ylabel("Torque (N*m)")
 
 figure('numbertitle','off','name','final project part 4','windowstate','maximized')
 
-sgtitle("Body to LVLH Spacecraft Attitude over 5 Periods")
+sgtitle("Body to LVLH Spacecraft Attitude over a Period")
 
 subplot(3,1,1)
 grid on; hold on;
@@ -332,6 +336,80 @@ legend("M_{cx}","M_{cy}","M_{cz}")
 title('Commanded Moment Components')
 xlabel('time (seconds)')
 ylabel('Commanded Moment (N*m)')
+
+%% Determine Reaction Wheel Specifications
+
+% Finding the Maximum Commanded Moments in Each Direction and of Magnitude
+McMag = norm(Mc);
+McxMax = max(Mc(:,1));
+McyMax = max(Mc(:,2));
+MczMax = max(Mc(:,3));
+McMagMax = max(McMag);
+
+% Integrating Commanded Moments to Find Momentum
+Px = cumtrapz(Mc(:,1));
+Py = cumtrapz(Mc(:,2));
+Pz = cumtrapz(Mc(:,3));
+
+% Finding the Maximum Angular Velocity for each wheel
+wheelxMax = max(omegaCap(:,1));
+wheelyMax = max(omegaCap(:,2));
+wheelzMax = max(omegaCap(:,3));
+
+disp("Max Commanded Moment X: " +McxMax+ (" N*m"))
+disp("Max Commanded Moment Y: " +McyMax+ (" N*m"))
+disp("Max Commanded Moment Z: " +MczMax+ (" N*m"))
+disp(" ")
+disp("Max Wheel Speed X: " +wheelxMax+ " rad/s")
+disp("Max Wheel Speed Y: " +wheelyMax+ " rad/s")
+disp("Max Wheel Speed Z: " +wheelzMax+ " rad/s")
+disp(" ")
+disp("Total Angular Momentum Storage X: " +max(Px)+ " Nms")
+disp("Total Angular Momentum Storage Y: " +max(Py)+ " Nms")
+disp("Total Angular Momentum Storage Z: " +max(Pz)+ " Nms")
+disp(" ")
+disp("Total Angular Momentum Storage Y: " +max(Py)+ " Nms")
+disp("Total Angular Momentum Storage Z: " +max(Pz)+ " Nms")
+disp(" ")
+disp("Reaction Wheel Discussion: The reaction wheel selected is a OCE-RW1000, ")
+disp("designed for large output torques. The Maximum Momentum Storage is 11Nms, ")
+disp("where the max angular momemtum in each axis of the spacecraft is no more than")
+disp("1.5Nms. The Maximum moment of the reaction wheels are 1 Nm, which is exceeds our")
+disp("maximum spacecraft commanded moment of 0.578 Nm. The maximum wheel speed of the ")
+disp("reaction wheel is 125 rad/s, where the max wheel speed required is about 10 rad/s.")
+disp("The mass of each reaction wheel is 10 kg, with a diameter of 0.1685m and height of ")
+disp("0.121m. The wheel inertial about the spin axis is 0.1420 kg*m^2 and about the ")
+disp("translational axis is 0.0488 kg*m^2.")
+
+% Plotting Momentum and Commanded Moment on the Same Plots
+figure('numbertitle','off','name','final project part 7','windowstate','maximized')
+
+subplot(3,1,1)
+plot(out.tout,Mc(:,1))
+grid on; hold on;
+plot(out.tout,Px)
+title('X')
+xlabel('time (sec)')
+ylabel('Commanded Moment and Momentum')
+legend('M_{cx}','P_{x}')
+
+subplot(3,1,2)
+plot(out.tout,Mc(:,2))
+grid on; hold on;
+plot(out.tout,Py)
+title('Y')
+xlabel('time (sec)')
+ylabel('Commanded Moment and Momentum')
+legend('M_{cy}','P_{y}')
+
+subplot(3,1,3)
+plot(out.tout,Mc(:,3))
+grid on; hold on;
+plot(out.tout,Pz)
+title('Z')
+xlabel('time (sec)')
+ylabel('Commanded Moment and Momentum')
+legend('M_{cz}','P_{z}')
 
 %% Functions
 
